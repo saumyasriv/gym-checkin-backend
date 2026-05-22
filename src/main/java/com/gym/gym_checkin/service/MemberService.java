@@ -187,4 +187,8 @@ public class MemberService {
     public void deleteMember(Long id) {
         memberRepository.deleteById(id);
     }
+
+    public void deleteAllMembers() {
+        memberRepository.deleteAll();
+    }
 }
