@@ -197,10 +197,6 @@ public class MemberService {
     
     @Transactional
     public void deleteMember(Long id) {
-
-        membershipRepository.deleteAllByMemberId(id);
-        checkinRepository.deleteAllByMemberId(id);
-
         memberRepository.deleteById(id);
     }
 

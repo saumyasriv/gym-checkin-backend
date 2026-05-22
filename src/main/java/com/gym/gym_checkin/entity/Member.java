@@ -9,8 +9,8 @@ import java.util.List;
 
 @Entity
 @Getter
-@Table(name = "member")
 @Setter
+@Table(name = "member")
 @JsonIgnoreProperties({
         "hibernateLazyInitializer",
         "handler"
@@ -29,11 +29,17 @@ public class Member {
 
     private String notes;
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(
+            mappedBy = "member",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<Membership> memberships;
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(
+            mappedBy = "member",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<Checkin> checkins;
-
-    // getters setters
 }
