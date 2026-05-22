@@ -43,4 +43,9 @@ public class MemberController {
     ) {
         return memberService.getMemberDetails(id);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteMember(@PathVariable Long id) {
+        memberService.deleteMember(id);
+    }
 }
