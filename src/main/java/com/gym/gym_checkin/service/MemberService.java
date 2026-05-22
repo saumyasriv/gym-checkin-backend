@@ -6,6 +6,7 @@ import com.gym.gym_checkin.repository.CheckinRepository;
 import com.gym.gym_checkin.repository.MemberRepository;
 import com.gym.gym_checkin.repository.MembershipRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -193,7 +194,8 @@ public class MemberService {
 
         return response;
     }
-
+    
+    @Transactional
     public void deleteMember(Long id) {
 
         membershipRepository.deleteAllByMemberId(id);
@@ -202,6 +204,7 @@ public class MemberService {
         memberRepository.deleteById(id);
     }
 
+   @Transactional
     public void deleteAllMembers() {
 
         checkinRepository.deleteAll();
