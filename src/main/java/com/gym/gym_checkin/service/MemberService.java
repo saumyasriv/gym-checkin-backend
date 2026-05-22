@@ -2,7 +2,9 @@ package com.gym.gym_checkin.service;
 
 import com.gym.gym_checkin.dto.*;
 import com.gym.gym_checkin.entity.Member;
+import com.gym.gym_checkin.repository.CheckinRepository;
 import com.gym.gym_checkin.repository.MemberRepository;
+import com.gym.gym_checkin.repository.MembershipRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,9 +13,17 @@ import java.util.List;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final MembershipRepository membershipRepository;
+    private final CheckinRepository checkinRepository;
 
-    public MemberService(MemberRepository memberRepository) {
+    public MemberService(
+            MemberRepository memberRepository,
+            MembershipRepository membershipRepository,
+            CheckinRepository checkinRepository
+    ) {
         this.memberRepository = memberRepository;
+        this.membershipRepository = membershipRepository;
+        this.checkinRepository = checkinRepository;
     }
 
     public Member createMember(Member member) {
@@ -185,10 +195,17 @@ public class MemberService {
     }
 
     public void deleteMember(Long id) {
+
+        membershipRepository.deleteAllByMemberId(id);
+        checkinRepository.deleteAllByMemberId(id);
+
         memberRepository.deleteById(id);
     }
 
     public void deleteAllMembers() {
+
+        checkinRepository.deleteAll();
+        membershipRepository.deleteAll();
         memberRepository.deleteAll();
     }
 }
