@@ -55,6 +55,19 @@ public class MembershipService {
         }
 
         // Normal Add Membership flow
+
+        if ("8 Sessions".equals(request.getPackageName())) {
+
+            membership.setTotalCredits(8);
+            membership.setRemainingCredits(8);
+
+            LocalDate startDate = LocalDate.now();
+
+            membership.setStartDate(startDate);
+            membership.setExpiryDate(startDate.plusWeeks(5));
+
+        }
+        
         if ("12 Sessions".equals(request.getPackageName())) {
 
             membership.setTotalCredits(12);
