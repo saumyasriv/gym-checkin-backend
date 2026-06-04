@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "checkins")
@@ -32,6 +33,9 @@ public class Checkin {
 
     @PrePersist
     public void prePersist() {
-        this.checkinTime = LocalDateTime.now();
+        this.checkinTime =
+                LocalDateTime.now(
+                        ZoneId.of("Asia/Kolkata")
+                );
     }
 }
