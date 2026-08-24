@@ -207,4 +207,13 @@ public class MemberService {
         membershipRepository.deleteAll();
         memberRepository.deleteAll();
     }
+
+    public Member updateNotes(Long memberId, String notes) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
+
+        member.setNotes(notes);
+
+        return memberRepository.save(member);
+    }
 }

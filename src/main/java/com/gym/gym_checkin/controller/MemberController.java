@@ -53,4 +53,12 @@ public class MemberController {
     public void deleteAllMembers() {
         memberService.deleteAllMembers();
     }
+
+    @PutMapping("/{id}/notes")
+    public Member updateNotes(
+            @PathVariable Long id,
+            @RequestBody String notes) {
+
+        return memberService.updateNotes(id, notes);
+    }
 }
