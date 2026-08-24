@@ -8,6 +8,7 @@ import com.gym.gym_checkin.service.MemberService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/members")
@@ -60,8 +61,11 @@ public class MemberController {
     @PutMapping("/{id}/notes")
     public Member updateNotes(
             @PathVariable Long id,
-            @RequestBody String notes) {
+            @RequestBody Map<String, String> body) {
 
-        return memberService.updateNotes(id, notes);
+        return memberService.updateNotes(
+                id,
+                body.get("notes")
+        );
     }
 }
