@@ -58,7 +58,10 @@ public class MemberController {
         memberService.deleteAllMembers();
     }
 
-    @PutMapping("/{id}/notes")
+    @PutMapping(
+            value = "/{id}/notes",
+            consumes = "application/json"
+    )
     public Member updateNotes(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
