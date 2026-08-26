@@ -2,12 +2,14 @@ package com.gym.gym_checkin.service;
 
 import com.gym.gym_checkin.dto.*;
 import com.gym.gym_checkin.entity.Member;
+import com.gym.gym_checkin.entity.Membership;
 import com.gym.gym_checkin.repository.CheckinRepository;
 import com.gym.gym_checkin.repository.MemberRepository;
 import com.gym.gym_checkin.repository.MembershipRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -71,11 +73,8 @@ public class MemberService {
 
             int totalCredits = member.getMemberships()
                     .stream()
-                    .mapToInt(m ->
-                            m.getRemainingCredits() != null
-                                    ? m.getRemainingCredits()
-                                    : 0
-                    )
+                    .filter(this::isActiveMembership)
+                    .mapToInt(Membership::getRemainingCredits)
                     .sum();
 
             response.setTotalRemainingCredits(totalCredits);
@@ -100,11 +99,8 @@ public class MemberService {
 
             int totalCredits = member.getMemberships()
                     .stream()
-                    .mapToInt(m ->
-                            m.getRemainingCredits() != null
-                                    ? m.getRemainingCredits()
-                                    : 0
-                    )
+                    .filter(this::isActiveMembership)
+                    .mapToInt(Membership::getRemainingCredits)
                     .sum();
 
             response.setTotalRemainingCredits(totalCredits);
@@ -130,11 +126,8 @@ public class MemberService {
 
         int totalCredits = member.getMemberships()
                 .stream()
-                .mapToInt(m ->
-                        m.getRemainingCredits() != null
-                                ? m.getRemainingCredits()
-                                : 0
-                )
+                .filter(this::isActiveMembership)
+                .mapToInt(Membership::getRemainingCredits)
                 .sum();
 
         response.setTotalRemainingCredits(totalCredits);
@@ -167,12 +160,10 @@ public class MemberService {
 
         List<CheckinResponse> checkins =
                 member.getCheckins().stream()
-
                         .sorted(
                                 (a, b) -> b.getCheckinTime()
                                         .compareTo(a.getCheckinTime())
                         )
-
                         .map(checkin -> {
 
                             CheckinResponse checkinResponse =
@@ -194,26 +185,25 @@ public class MemberService {
 
         return response;
     }
-    
+
+    private boolean isActiveMembership(Membership membership) {
+
+        return membership.getRemainingCredits() != null
+                && membership.getRemainingCredits() > 0
+                && membership.getExpiryDate() != null
+                && !membership.getExpiryDate().isBefore(LocalDate.now());
+    }
+
     @Transactional
     public void deleteMember(Long id) {
         memberRepository.deleteById(id);
     }
 
-   @Transactional
+    @Transactional
     public void deleteAllMembers() {
 
         checkinRepository.deleteAll();
         membershipRepository.deleteAll();
         memberRepository.deleteAll();
-    }
-
-    public Member updateNotes(Long memberId, String notes) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("Member not found"));
-
-        member.setNotes(notes);
-
-        return memberRepository.save(member);
     }
 }

@@ -8,6 +8,8 @@ import com.gym.gym_checkin.repository.CheckinRepository;
 import com.gym.gym_checkin.repository.MemberRepository;
 import com.gym.gym_checkin.repository.MembershipRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,18 +21,25 @@ public class CheckinService {
     private final MembershipRepository membershipRepository;
     private final CheckinRepository checkinRepository;
 
-    public CheckinService(MemberRepository memberRepository,
-                          MembershipRepository membershipRepository,
-                          CheckinRepository checkinRepository) {
+    public CheckinService(
+            MemberRepository memberRepository,
+            MembershipRepository membershipRepository,
+            CheckinRepository checkinRepository
+    ) {
         this.memberRepository = memberRepository;
         this.membershipRepository = membershipRepository;
         this.checkinRepository = checkinRepository;
     }
 
-    public String processAttendance(CheckinRequest request, String type) {
+    public String processAttendance(
+            CheckinRequest request,
+            String type
+    ) {
 
         Member member = memberRepository.findById(request.getMemberId())
-                .orElseThrow(() -> new RuntimeException("Member not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Member not found")
+                );
 
         List<Membership> memberships =
                 membershipRepository
@@ -41,7 +50,29 @@ public class CheckinService {
                         );
 
         if (memberships.isEmpty()) {
-            throw new RuntimeException("No active memberships found");
+
+            boolean hasExpiredCredits = member.getMemberships()
+                    .stream()
+                    .anyMatch(membership ->
+                            membership.getRemainingCredits() != null
+                                    && membership.getRemainingCredits() > 0
+                                    && membership.getExpiryDate() != null
+                                    && membership.getExpiryDate()
+                                    .isBefore(LocalDate.now())
+                    );
+
+            if (hasExpiredCredits) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Credits expired"
+                );
+            }
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "No credits"
+            );
         }
 
         Membership membership = memberships.get(0);
@@ -53,6 +84,7 @@ public class CheckinService {
         membershipRepository.save(membership);
 
         Checkin checkin = new Checkin();
+
         checkin.setMember(member);
         checkin.setMembership(membership);
         checkin.setType(type);
@@ -60,6 +92,7 @@ public class CheckinService {
         checkinRepository.save(checkin);
 
         if (membership.getRemainingCredits() < 5) {
+
             return "Checked in successfully. Warning: only "
                     + membership.getRemainingCredits()
                     + " credits remaining.";
