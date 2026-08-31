@@ -7,6 +7,7 @@ import com.gym.gym_checkin.entity.Membership;
 import com.gym.gym_checkin.repository.CheckinRepository;
 import com.gym.gym_checkin.repository.MemberRepository;
 import com.gym.gym_checkin.repository.MembershipRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 public class CheckinService {
 
@@ -37,9 +39,10 @@ public class CheckinService {
     ) {
 
         Member member = memberRepository.findById(request.getMemberId())
-                .orElseThrow(() ->
-                        new RuntimeException("Member not found")
-                );
+                .orElseThrow(() -> {
+                    log.info("Member not found with ID: {}", request.getMemberId());
+                    return new RuntimeException("Member not found");
+                });
 
         List<Membership> memberships =
                 membershipRepository
