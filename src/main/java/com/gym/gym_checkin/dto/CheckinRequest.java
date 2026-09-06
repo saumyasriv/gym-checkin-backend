@@ -9,4 +9,5 @@ public class CheckinRequest {
 
     private Long memberId;
     private String type;
+    private String classTiming;
 }

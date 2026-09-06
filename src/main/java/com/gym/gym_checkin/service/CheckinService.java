@@ -91,6 +91,7 @@ public class CheckinService {
         checkin.setMember(member);
         checkin.setMembership(membership);
         checkin.setType(type);
+        checkin.setClassTiming(request.getClassTiming());
 
         checkinRepository.save(checkin);
 

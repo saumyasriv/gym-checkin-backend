@@ -21,12 +21,14 @@ public class Checkin {
     private LocalDateTime checkinTime;
 
     private String type;
-    
+
+    private String classTiming;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
-    
+
     @ManyToOne
     @JoinColumn(name = "membership_id")
     private Membership membership;

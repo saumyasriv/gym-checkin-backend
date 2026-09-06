@@ -177,6 +177,10 @@ public class MemberService {
                                     checkin.getType()
                             );
 
+                            checkinResponse.setClassTiming(
+                                    checkin.getClassTiming()
+                            );
+
                             return checkinResponse;
 
                         }).toList();
