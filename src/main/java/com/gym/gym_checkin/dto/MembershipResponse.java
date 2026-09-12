@@ -9,11 +9,9 @@ import java.time.LocalDate;
 @Setter
 public class MembershipResponse {
 
+    private Long id;
     private String packageName;
-
     private Integer remainingCredits;
-
     private LocalDate startDate;
-
     private LocalDate expiryDate;
 }

@@ -12,5 +12,6 @@ public class CheckinResponse {
     private LocalDateTime checkinTime;
     private String type;
     private String classTiming;
+    private Long membershipId;
 
 }

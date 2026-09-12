@@ -51,6 +51,11 @@ public class MemberService {
                         MembershipResponse membershipResponse =
                                 new MembershipResponse();
 
+                        // Membership ID
+                        membershipResponse.setId(
+                                membership.getId()
+                        );
+
                         membershipResponse.setPackageName(
                                 membership.getPackageName()
                         );
@@ -142,6 +147,11 @@ public class MemberService {
                     MembershipResponse membershipResponse =
                             new MembershipResponse();
 
+                    // Membership ID
+                    membershipResponse.setId(
+                            membership.getId()
+                    );
+
                     membershipResponse.setPackageName(
                             membership.getPackageName()
                     );
@@ -187,6 +197,14 @@ public class MemberService {
 
                             checkinResponse.setClassTiming(
                                     checkin.getClassTiming()
+                            );
+
+                            // Tell the frontend which membership
+                            // this check-in belongs to.
+                            checkinResponse.setMembershipId(
+                                    checkin.getMembership() != null
+                                            ? checkin.getMembership().getId()
+                                            : null
                             );
 
                             return checkinResponse;
