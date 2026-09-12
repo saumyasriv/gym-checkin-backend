@@ -61,7 +61,7 @@ public class MembershipService {
             membership.setTotalCredits(8);
             membership.setRemainingCredits(8);
 
-            LocalDate startDate = LocalDate.now();
+            LocalDate startDate = request.getStartDate();
 
             membership.setStartDate(startDate);
             membership.setExpiryDate(startDate.plusWeeks(5));
@@ -73,7 +73,7 @@ public class MembershipService {
             membership.setTotalCredits(12);
             membership.setRemainingCredits(12);
 
-            LocalDate startDate = LocalDate.now();
+            LocalDate startDate = request.getStartDate();
 
             membership.setStartDate(startDate);
             membership.setExpiryDate(startDate.plusWeeks(5));
@@ -83,7 +83,7 @@ public class MembershipService {
             membership.setTotalCredits(24);
             membership.setRemainingCredits(24);
 
-            LocalDate startDate = LocalDate.now();
+            LocalDate startDate = request.getStartDate();
 
             membership.setStartDate(startDate);
             membership.setExpiryDate(startDate.plusWeeks(10));
@@ -93,7 +93,7 @@ public class MembershipService {
             membership.setTotalCredits(36);
             membership.setRemainingCredits(36);
 
-            LocalDate startDate = LocalDate.now();
+            LocalDate startDate = request.getStartDate();
 
             membership.setStartDate(startDate);
             membership.setExpiryDate(startDate.plusWeeks(15));
