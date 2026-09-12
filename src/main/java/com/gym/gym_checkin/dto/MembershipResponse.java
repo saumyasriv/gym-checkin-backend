@@ -13,5 +13,7 @@ public class MembershipResponse {
 
     private Integer remainingCredits;
 
+    private LocalDate startDate;
+
     private LocalDate expiryDate;
 }

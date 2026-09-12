@@ -61,6 +61,10 @@ public class MemberService {
                                         : 0
                         );
 
+                        membershipResponse.setStartDate(
+                                membership.getStartDate()
+                        );
+
                         membershipResponse.setExpiryDate(
                                 membership.getExpiryDate()
                         );
@@ -146,6 +150,10 @@ public class MemberService {
                             membership.getRemainingCredits() != null
                                     ? membership.getRemainingCredits()
                                     : 0
+                    );
+
+                    membershipResponse.setStartDate(
+                            membership.getStartDate()
                     );
 
                     membershipResponse.setExpiryDate(
