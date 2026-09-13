@@ -74,6 +74,15 @@ public class MemberService {
                                 membership.getExpiryDate()
                         );
 
+                        // Pause information
+                        membershipResponse.setPaused(
+                                membership.isPaused()
+                        );
+
+                        membershipResponse.setPauseStartDate(
+                                membership.getPauseStartDate()
+                        );
+
                         return membershipResponse;
 
                     }).toList();
@@ -170,6 +179,15 @@ public class MemberService {
                             membership.getExpiryDate()
                     );
 
+                    // Pause information
+                    membershipResponse.setPaused(
+                            membership.isPaused()
+                    );
+
+                    membershipResponse.setPauseStartDate(
+                            membership.getPauseStartDate()
+                    );
+
                     return membershipResponse;
 
                 }).toList();
@@ -218,7 +236,8 @@ public class MemberService {
 
     private boolean isActiveMembership(Membership membership) {
 
-        return membership.getRemainingCredits() != null
+        return !membership.isPaused()
+                && membership.getRemainingCredits() != null
                 && membership.getRemainingCredits() > 0
                 && membership.getExpiryDate() != null
                 && !membership.getExpiryDate().isBefore(LocalDate.now());

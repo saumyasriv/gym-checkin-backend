@@ -29,6 +29,10 @@ public class Membership {
 
     private LocalDate expiryDate;
 
+    private boolean paused;
+
+    private LocalDate pauseStartDate;
+
     @ManyToOne
     @JsonIgnore
     private Member member;

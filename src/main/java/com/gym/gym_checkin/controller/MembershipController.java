@@ -7,7 +7,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/memberships")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://gym-checkin-frontend.onrender.com"
+})
 public class MembershipController {
 
     private final MembershipService membershipService;
@@ -17,7 +20,23 @@ public class MembershipController {
     }
 
     @PostMapping
-    public Membership createMembership(@RequestBody CreateMembershipRequest request) {
+    public Membership createMembership(
+            @RequestBody CreateMembershipRequest request
+    ) {
         return membershipService.createMembership(request);
+    }
+
+    @PostMapping("/{membershipId}/pause")
+    public Membership pauseMembership(
+            @PathVariable Long membershipId
+    ) {
+        return membershipService.pauseMembership(membershipId);
+    }
+
+    @PostMapping("/{membershipId}/unpause")
+    public Membership unpauseMembership(
+            @PathVariable Long membershipId
+    ) {
+        return membershipService.unpauseMembership(membershipId);
     }
 }
