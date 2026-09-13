@@ -9,6 +9,7 @@ import com.gym.gym_checkin.repository.MemberRepository;
 import com.gym.gym_checkin.repository.MembershipRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
@@ -33,6 +34,7 @@ public class CheckinService {
         this.checkinRepository = checkinRepository;
     }
 
+    @Transactional
     public String processAttendance(
             CheckinRequest request,
             String type
