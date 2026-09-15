@@ -52,6 +52,47 @@ public class CheckinService {
                     );
                 });
 
+        // ============================================================
+        // MEMBER TYPE VALIDATION
+        // ============================================================
+        //
+        // GROUP members can only check in through the GROUP page.
+        // PT members can only check in through the PT page.
+        //
+        // This is enforced on the backend as well as the frontend.
+        // ============================================================
+
+        if (request.getMemberType() == null ||
+                request.getMemberType().isBlank()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Member type is required"
+            );
+        }
+
+        if (member.getMemberType() == null) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Member classification is missing"
+            );
+        }
+
+        if (!member.getMemberType()
+                .name()
+                .equalsIgnoreCase(request.getMemberType())) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Member type does not match"
+            );
+        }
+
+        // ============================================================
+        // FIND USABLE MEMBERSHIP
+        // ============================================================
+
         List<Membership> memberships =
                 membershipRepository
                         .findByMemberAndRemainingCreditsGreaterThanAndExpiryDateGreaterThanEqualOrderByExpiryDateAsc(
@@ -107,6 +148,10 @@ public class CheckinService {
             );
         }
 
+        // ============================================================
+        // CONSUME CREDIT
+        // ============================================================
+
         Membership membership = memberships.get(0);
 
         membership.setRemainingCredits(
@@ -115,15 +160,30 @@ public class CheckinService {
 
         membershipRepository.save(membership);
 
+        // ============================================================
+        // CREATE CHECK-IN
+        // ============================================================
+
         Checkin checkin = new Checkin();
+
         checkin.setMember(member);
+
         checkin.setMembership(membership);
+
         checkin.setType(type);
-        checkin.setClassTiming(request.getClassTiming());
+
+        checkin.setClassTiming(
+                request.getClassTiming()
+        );
 
         checkinRepository.save(checkin);
 
+        // ============================================================
+        // RESPONSE
+        // ============================================================
+
         if (membership.getRemainingCredits() < 5) {
+
             return "Checked in successfully. Warning: only "
                     + membership.getRemainingCredits()
                     + " credits remaining.";

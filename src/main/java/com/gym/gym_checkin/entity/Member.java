@@ -29,6 +29,9 @@ public class Member {
 
     private String notes;
 
+    @Enumerated(EnumType.STRING)
+    private MemberType memberType;
+
     @OneToMany(
             mappedBy = "member",
             cascade = CascadeType.ALL,

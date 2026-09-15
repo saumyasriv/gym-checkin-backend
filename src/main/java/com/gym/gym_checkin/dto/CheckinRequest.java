@@ -8,6 +8,10 @@ import lombok.Setter;
 public class CheckinRequest {
 
     private Long memberId;
+
     private String type;
+
     private String classTiming;
+
+    private String memberType;
 }

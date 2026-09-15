@@ -1,5 +1,6 @@
 package com.gym.gym_checkin.dto;
 
+import com.gym.gym_checkin.entity.MemberType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,8 @@ public class MemberResponse {
     private String name;
 
     private String phone;
+
+    private MemberType memberType;
 
     private Integer totalRemainingCredits;
 
