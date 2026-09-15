@@ -8,10 +8,10 @@ import com.gym.gym_checkin.repository.CheckinRepository;
 import com.gym.gym_checkin.repository.MemberRepository;
 import com.gym.gym_checkin.repository.MembershipRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -42,8 +42,14 @@ public class CheckinService {
 
         Member member = memberRepository.findById(request.getMemberId())
                 .orElseThrow(() -> {
-                    log.info("Member not found with ID: {}", request.getMemberId());
-                    return new RuntimeException("Member not found");
+                    log.info(
+                            "Member not found with ID: {}",
+                            request.getMemberId()
+                    );
+
+                    return new RuntimeException(
+                            "Member not found"
+                    );
                 });
 
         List<Membership> memberships =
@@ -54,20 +60,41 @@ public class CheckinService {
                                 LocalDate.now()
                         );
 
+        // Never allow a paused membership to be used.
+        memberships = memberships.stream()
+                .filter(membership -> !membership.isPaused())
+                .toList();
+
         if (memberships.isEmpty()) {
 
-            boolean hasExpiredCredits = member.getMemberships()
-                    .stream()
-                    .anyMatch(membership ->
-                            membership.getRemainingCredits() != null
-                                    && membership.getRemainingCredits() > 0
-                                    && membership.getExpiryDate() != null
-                                    && membership.getExpiryDate()
-                                    .isBefore(LocalDate.now())
-                    );
+            boolean hasPausedCredits =
+                    member.getMemberships()
+                            .stream()
+                            .anyMatch(membership ->
+                                    membership.isPaused()
+                                            && membership.getRemainingCredits() != null
+                                            && membership.getRemainingCredits() > 0
+                            );
+
+            if (hasPausedCredits) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Membership is paused"
+                );
+            }
+
+            boolean hasExpiredCredits =
+                    member.getMemberships()
+                            .stream()
+                            .anyMatch(membership ->
+                                    membership.getRemainingCredits() != null
+                                            && membership.getRemainingCredits() > 0
+                                            && membership.getExpiryDate() != null
+                                            && membership.getExpiryDate()
+                                            .isBefore(LocalDate.now())
+                            );
 
             if (hasExpiredCredits) {
-
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         "Credits expired"
@@ -89,7 +116,6 @@ public class CheckinService {
         membershipRepository.save(membership);
 
         Checkin checkin = new Checkin();
-
         checkin.setMember(member);
         checkin.setMembership(membership);
         checkin.setType(type);
@@ -98,7 +124,6 @@ public class CheckinService {
         checkinRepository.save(checkin);
 
         if (membership.getRemainingCredits() < 5) {
-
             return "Checked in successfully. Warning: only "
                     + membership.getRemainingCredits()
                     + " credits remaining.";

@@ -89,9 +89,21 @@ public class MemberService {
 
             response.setMemberships(membershipResponses);
 
+            /*
+             * TOTAL REMAINING CREDITS
+             *
+             * Include ALL memberships here, including paused
+             * memberships.
+             *
+             * A paused membership still has valid remaining
+             * credits. Pausing only prevents those credits from
+             * being used until the membership is unpaused.
+             */
             int totalCredits = member.getMemberships()
                     .stream()
-                    .filter(this::isActiveMembership)
+                    .filter(membership ->
+                            membership.getRemainingCredits() != null
+                    )
                     .mapToInt(Membership::getRemainingCredits)
                     .sum();
 
@@ -115,9 +127,15 @@ public class MemberService {
             response.setId(member.getId());
             response.setName(member.getName());
 
+            /*
+             * Include paused memberships in the total remaining
+             * credits shown in search results as well.
+             */
             int totalCredits = member.getMemberships()
                     .stream()
-                    .filter(this::isActiveMembership)
+                    .filter(membership ->
+                            membership.getRemainingCredits() != null
+                    )
                     .mapToInt(Membership::getRemainingCredits)
                     .sum();
 
@@ -131,7 +149,9 @@ public class MemberService {
     public MemberDetailsResponse getMemberDetails(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("Member not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Member not found")
+                );
 
         MemberDetailsResponse response =
                 new MemberDetailsResponse();
@@ -142,9 +162,25 @@ public class MemberService {
         response.setEmail(member.getEmail());
         response.setNotes(member.getNotes());
 
+        /*
+         * TOTAL REMAINING CREDITS
+         *
+         * Include paused memberships.
+         *
+         * Example:
+         *
+         * Active membership  = 10 credits
+         * Paused membership  = 23 credits
+         * Total shown        = 33 credits
+         *
+         * The paused 23 credits are still the member's credits;
+         * they are simply unavailable for check-in while paused.
+         */
         int totalCredits = member.getMemberships()
                 .stream()
-                .filter(this::isActiveMembership)
+                .filter(membership ->
+                        membership.getRemainingCredits() != null
+                )
                 .mapToInt(Membership::getRemainingCredits)
                 .sum();
 
@@ -234,6 +270,14 @@ public class MemberService {
         return response;
     }
 
+    /*
+     * ACTIVE MEMBERSHIP
+     *
+     * Used specifically for determining whether a membership
+     * can currently be used for check-in.
+     *
+     * A paused membership is NOT active.
+     */
     private boolean isActiveMembership(Membership membership) {
 
         return !membership.isPaused()
