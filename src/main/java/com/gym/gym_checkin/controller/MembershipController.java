@@ -39,4 +39,18 @@ public class MembershipController {
     ) {
         return membershipService.unpauseMembership(membershipId);
     }
+
+    @PostMapping("/{membershipId}/remove-expiry")
+    public Membership removeExpiry(
+            @PathVariable Long membershipId
+    ) {
+        return membershipService.removeExpiry(membershipId);
+    }
+
+    @PostMapping("/{membershipId}/restore-expiry")
+    public Membership restoreExpiry(
+            @PathVariable Long membershipId
+    ) {
+        return membershipService.restoreExpiry(membershipId);
+    }
 }
