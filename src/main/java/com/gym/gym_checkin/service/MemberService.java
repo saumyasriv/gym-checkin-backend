@@ -185,6 +185,9 @@ public class MemberService {
         response.setEmail(member.getEmail());
         response.setNotes(member.getNotes());
 
+        // Member classification
+        response.setMemberType(member.getMemberType());
+
         /*
          * TOTAL REMAINING CREDITS
          *
