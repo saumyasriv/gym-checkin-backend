@@ -3,6 +3,7 @@ package com.gym.gym_checkin.service;
 import com.gym.gym_checkin.dto.*;
 import com.gym.gym_checkin.entity.Member;
 import com.gym.gym_checkin.entity.Membership;
+import com.gym.gym_checkin.entity.MembershipPauseHistory;
 import com.gym.gym_checkin.repository.CheckinRepository;
 import com.gym.gym_checkin.repository.MemberRepository;
 import com.gym.gym_checkin.repository.MembershipRepository;
@@ -74,13 +75,21 @@ public class MemberService {
                                 membership.getExpiryDate()
                         );
 
-                        // Pause information
+                        // Current pause information
                         membershipResponse.setPaused(
                                 membership.isPaused()
                         );
 
                         membershipResponse.setPauseStartDate(
                                 membership.getPauseStartDate()
+                        );
+
+                        // Pause history
+                        membershipResponse.setPauseHistory(
+                                membership.getPauseHistory()
+                                        .stream()
+                                        .map(this::toPauseHistoryResponse)
+                                        .toList()
                         );
 
                         return membershipResponse;
@@ -92,12 +101,11 @@ public class MemberService {
             /*
              * TOTAL REMAINING CREDITS
              *
-             * Include ALL memberships here, including paused
+             * Include ALL memberships, including paused
              * memberships.
              *
-             * A paused membership still has valid remaining
-             * credits. Pausing only prevents those credits from
-             * being used until the membership is unpaused.
+             * Pausing a membership does not remove or consume
+             * its remaining credits.
              */
             int totalCredits = member.getMemberships()
                     .stream()
@@ -129,7 +137,7 @@ public class MemberService {
 
             /*
              * Include paused memberships in the total remaining
-             * credits shown in search results as well.
+             * credits shown in search results.
              */
             int totalCredits = member.getMemberships()
                     .stream()
@@ -169,12 +177,9 @@ public class MemberService {
          *
          * Example:
          *
-         * Active membership  = 10 credits
-         * Paused membership  = 23 credits
-         * Total shown        = 33 credits
-         *
-         * The paused 23 credits are still the member's credits;
-         * they are simply unavailable for check-in while paused.
+         * Active membership = 10
+         * Paused membership = 23
+         * Total = 33
          */
         int totalCredits = member.getMemberships()
                 .stream()
@@ -215,13 +220,21 @@ public class MemberService {
                             membership.getExpiryDate()
                     );
 
-                    // Pause information
+                    // Current pause information
                     membershipResponse.setPaused(
                             membership.isPaused()
                     );
 
                     membershipResponse.setPauseStartDate(
                             membership.getPauseStartDate()
+                    );
+
+                    // Pause history
+                    membershipResponse.setPauseHistory(
+                            membership.getPauseHistory()
+                                    .stream()
+                                    .map(this::toPauseHistoryResponse)
+                                    .toList()
                     );
 
                     return membershipResponse;
@@ -271,12 +284,44 @@ public class MemberService {
     }
 
     /*
+     * Convert the database pause-history entity into the
+     * lightweight DTO returned to the frontend.
+     */
+    private MembershipPauseHistoryResponse toPauseHistoryResponse(
+            MembershipPauseHistory history
+    ) {
+
+        MembershipPauseHistoryResponse response =
+                new MembershipPauseHistoryResponse();
+
+        response.setId(history.getId());
+
+        response.setPauseStartDate(
+                history.getPauseStartDate()
+        );
+
+        response.setPauseEndDate(
+                history.getPauseEndDate()
+        );
+
+        response.setPausedDays(
+                history.getPausedDays()
+        );
+
+        response.setDaysAddedToExpiry(
+                history.getDaysAddedToExpiry()
+        );
+
+        return response;
+    }
+
+    /*
      * ACTIVE MEMBERSHIP
      *
-     * Used specifically for determining whether a membership
+     * This is used for determining whether a membership
      * can currently be used for check-in.
      *
-     * A paused membership is NOT active.
+     * Paused memberships are NOT active.
      */
     private boolean isActiveMembership(Membership membership) {
 
