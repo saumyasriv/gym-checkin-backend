@@ -46,6 +46,9 @@ public class MemberService {
             response.setName(member.getName());
             response.setPhone(member.getPhone());
 
+            // Member classification
+            response.setMemberType(member.getMemberType());
+
             List<MembershipResponse> membershipResponses =
                     member.getMemberships().stream().map(membership -> {
 
@@ -143,6 +146,9 @@ public class MemberService {
 
             response.setId(member.getId());
             response.setName(member.getName());
+
+            // Member classification
+            response.setMemberType(member.getMemberType());
 
             /*
              * Include paused memberships in the total remaining
