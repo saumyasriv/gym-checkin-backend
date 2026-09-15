@@ -1,5 +1,6 @@
 package com.gym.gym_checkin.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,5 +27,6 @@ public class MembershipPauseHistory {
 
     @ManyToOne
     @JoinColumn(name = "membership_id", nullable = false)
+    @JsonIgnore
     private Membership membership;
 }
