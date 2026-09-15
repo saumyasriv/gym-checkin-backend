@@ -51,4 +51,13 @@ public class Membership {
     @OrderBy("pauseStartDate DESC")
     private List<MembershipPauseHistory> pauseHistory =
             new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "membership",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @OrderBy("expiryRemovedDate DESC")
+    private List<MembershipExpiryHistory> expiryHistory =
+            new ArrayList<>();
 }
