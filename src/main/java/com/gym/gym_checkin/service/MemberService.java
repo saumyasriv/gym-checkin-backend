@@ -75,6 +75,15 @@ public class MemberService {
                                 membership.getExpiryDate()
                         );
 
+                        // Expiry removal information
+                        membershipResponse.setExpiryRemoved(
+                                membership.isExpiryRemoved()
+                        );
+
+                        membershipResponse.setExpiryRemovedDate(
+                                membership.getExpiryRemovedDate()
+                        );
+
                         // Current pause information
                         membershipResponse.setPaused(
                                 membership.isPaused()
@@ -220,6 +229,15 @@ public class MemberService {
                             membership.getExpiryDate()
                     );
 
+                    // Expiry removal information
+                    membershipResponse.setExpiryRemoved(
+                            membership.isExpiryRemoved()
+                    );
+
+                    membershipResponse.setExpiryRemovedDate(
+                            membership.getExpiryRemovedDate()
+                    );
+
                     // Current pause information
                     membershipResponse.setPaused(
                             membership.isPaused()
@@ -352,7 +370,7 @@ public class MemberService {
                         new RuntimeException("Member not found")
                 );
 
-        member.setNotes(notes);
+        member.setNotes(member.getNotes());
 
         return memberRepository.save(member);
     }

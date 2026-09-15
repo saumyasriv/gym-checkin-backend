@@ -20,6 +20,10 @@ public class MembershipResponse {
 
     private LocalDate expiryDate;
 
+    private boolean expiryRemoved;
+
+    private LocalDate expiryRemovedDate;
+
     private boolean paused;
 
     private LocalDate pauseStartDate;

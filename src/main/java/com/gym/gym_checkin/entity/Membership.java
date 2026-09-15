@@ -31,6 +31,10 @@ public class Membership {
 
     private LocalDate expiryDate;
 
+    private boolean expiryRemoved;
+
+    private LocalDate expiryRemovedDate;
+
     private boolean paused;
 
     private LocalDate pauseStartDate;
