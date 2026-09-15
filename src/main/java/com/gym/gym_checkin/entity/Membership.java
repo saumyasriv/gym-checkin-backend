@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -37,5 +39,12 @@ public class Membership {
     @JsonIgnore
     private Member member;
 
-    // getters setters
+    @OneToMany(
+            mappedBy = "membership",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @OrderBy("pauseStartDate DESC")
+    private List<MembershipPauseHistory> pauseHistory =
+            new ArrayList<>();
 }
