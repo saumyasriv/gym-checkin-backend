@@ -113,17 +113,17 @@ public class MemberService {
             /*
              * TOTAL REMAINING CREDITS
              *
-             * Include ALL memberships, including paused
-             * memberships.
+             * Only include credits from ACTIVE memberships.
              *
-             * Pausing a membership does not remove or consume
-             * its remaining credits.
+             * Active means:
+             * - Not paused
+             * - More than 0 remaining credits
+             * - Not expired
+             * - OR expiry has been removed
              */
             int totalCredits = member.getMemberships()
                     .stream()
-                    .filter(membership ->
-                            membership.getRemainingCredits() != null
-                    )
+                    .filter(this::isActiveMembership)
                     .mapToInt(Membership::getRemainingCredits)
                     .sum();
 
@@ -191,19 +191,14 @@ public class MemberService {
         /*
          * TOTAL REMAINING CREDITS
          *
-         * Include paused memberships.
+         * Only include credits from ACTIVE memberships.
          *
-         * Example:
-         *
-         * Active membership = 10
-         * Paused membership = 23
-         * Total = 33
+         * Paused, expired, and zero-credit memberships
+         * are not included.
          */
         int totalCredits = member.getMemberships()
                 .stream()
-                .filter(membership ->
-                        membership.getRemainingCredits() != null
-                )
+                .filter(this::isActiveMembership)
                 .mapToInt(Membership::getRemainingCredits)
                 .sum();
 
@@ -345,18 +340,33 @@ public class MemberService {
     /*
      * ACTIVE MEMBERSHIP
      *
-     * This is used for determining whether a membership
-     * can currently be used for check-in.
+     * A membership is active when:
      *
-     * Paused memberships are NOT active.
+     * 1. It is not paused.
+     * 2. It has more than 0 remaining credits.
+     * 3. Its expiry has not passed.
+     *
+     * If expiry has been removed, the membership remains
+     * active indefinitely as long as it is not paused and
+     * still has credits.
      */
     private boolean isActiveMembership(Membership membership) {
 
-        return !membership.isPaused()
-                && membership.getRemainingCredits() != null
-                && membership.getRemainingCredits() > 0
-                && membership.getExpiryDate() != null
-                && !membership.getExpiryDate().isBefore(LocalDate.now());
+        if (membership.isPaused()) {
+            return false;
+        }
+
+        if (membership.getRemainingCredits() == null ||
+                membership.getRemainingCredits() <= 0) {
+            return false;
+        }
+
+        if (membership.isExpiryRemoved()) {
+            return true;
+        }
+
+        return membership.getExpiryDate() != null &&
+                !membership.getExpiryDate().isBefore(LocalDate.now());
     }
 
     @Transactional

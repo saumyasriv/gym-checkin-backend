@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -92,19 +93,61 @@ public class CheckinService {
         // ============================================================
         // FIND USABLE MEMBERSHIP
         // ============================================================
+        //
+        // A membership can be used for check-in only when:
+        //
+        // 1. It has more than 0 credits
+        // 2. It is not paused
+        // 3. Its expiry date has not passed
+        //    OR expiry has been removed
+        //
+        // If multiple usable memberships exist, use the one
+        // expiring earliest.
+        // ============================================================
+
+        LocalDate today = LocalDate.now();
 
         List<Membership> memberships =
-                membershipRepository
-                        .findByMemberAndRemainingCreditsGreaterThanAndExpiryDateGreaterThanEqualOrderByExpiryDateAsc(
-                                member,
-                                0,
-                                LocalDate.now()
-                        );
+                member.getMemberships()
+                        .stream()
+                        .filter(membership ->
+                                membership.getRemainingCredits() != null
+                                        && membership.getRemainingCredits() > 0
+                        )
+                        .filter(membership ->
+                                !membership.isPaused()
+                        )
+                        .filter(membership ->
+                                membership.isExpiryRemoved()
+                                        || (
+                                        membership.getExpiryDate() != null
+                                                && !membership.getExpiryDate()
+                                                .isBefore(today)
+                                )
+                        )
+                        .sorted(
+                                Comparator.comparing(
+                                        membership -> {
 
-        // Never allow a paused membership to be used.
-        memberships = memberships.stream()
-                .filter(membership -> !membership.isPaused())
-                .toList();
+                                            /*
+                                             * Memberships with no expiry
+                                             * are treated as indefinite.
+                                             *
+                                             * Put them after memberships
+                                             * with an actual expiry date so
+                                             * expiring credits are consumed
+                                             * first.
+                                             */
+                                            if (membership.isExpiryRemoved()
+                                                    || membership.getExpiryDate() == null) {
+                                                return LocalDate.MAX;
+                                            }
+
+                                            return membership.getExpiryDate();
+                                        }
+                                )
+                        )
+                        .toList();
 
         if (memberships.isEmpty()) {
 
@@ -128,11 +171,13 @@ public class CheckinService {
                     member.getMemberships()
                             .stream()
                             .anyMatch(membership ->
-                                    membership.getRemainingCredits() != null
+                                    !membership.isPaused()
+                                            && !membership.isExpiryRemoved()
+                                            && membership.getRemainingCredits() != null
                                             && membership.getRemainingCredits() > 0
                                             && membership.getExpiryDate() != null
                                             && membership.getExpiryDate()
-                                            .isBefore(LocalDate.now())
+                                            .isBefore(today)
                             );
 
             if (hasExpiredCredits) {
