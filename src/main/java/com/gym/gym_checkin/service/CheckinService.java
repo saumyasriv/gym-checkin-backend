@@ -36,6 +36,53 @@ public class CheckinService {
     }
 
     @Transactional
+    public String processBackdatedAttendance(CheckinRequest request, String adminUser) {
+        if (adminUser == null || adminUser.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required");
+        }
+        if (request.getMemberId() == null || request.getMembershipId() == null || request.getCheckinTime() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Member, membership, and session date/time are required");
+        }
+        if (!request.getCheckinTime().isBefore(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Backdated check-in must be in the past");
+        }
+        Member member = memberRepository.findById(request.getMemberId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
+        Membership membership = membershipRepository.findById(request.getMembershipId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Membership not found"));
+        if (membership.getMember() == null || !membership.getMember().getId().equals(member.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected membership does not belong to this member");
+        }
+        if (membership.getRemainingCredits() == null || membership.getRemainingCredits() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected membership has no credits remaining");
+        }
+        String type = request.getType();
+        if (type == null || !(type.equalsIgnoreCase("GROUP") || type.equalsIgnoreCase("PT"))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Check-in type must be GROUP or PT");
+        }
+        if (member.getMemberType() == null || !member.getMemberType().name().equalsIgnoreCase(type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Check-in type does not match member classification");
+        }
+        String classTiming = request.getClassTiming() == null ? "" : request.getClassTiming().trim();
+        if (checkinRepository.existsByMemberIdAndCheckinTimeAndClassTiming(member.getId(), request.getCheckinTime(), classTiming)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A check-in already exists for this member, date, and session time");
+        }
+        membership.setRemainingCredits(membership.getRemainingCredits() - 1);
+        membershipRepository.save(membership);
+        Checkin checkin = new Checkin();
+        checkin.setMember(member);
+        checkin.setMembership(membership);
+        checkin.setType(type.toUpperCase());
+        checkin.setClassTiming(classTiming);
+        checkin.setCheckinTime(request.getCheckinTime());
+        checkin.setBackdated(true);
+        checkin.setEnteredBy(adminUser.trim());
+        checkin.setEnteredAt(java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")));
+        checkinRepository.save(checkin);
+        return "Backdated check-in saved. Remaining credits on selected membership: " + membership.getRemainingCredits();
+    }
+
+    @Transactional
     public String processAttendance(
             CheckinRequest request,
             String type

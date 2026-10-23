@@ -14,4 +14,10 @@ public class CheckinRequest {
     private String classTiming;
 
     private String memberType;
+
+    private Long membershipId;
+
+    private java.time.LocalDateTime checkinTime;
+
+    private String enteredBy;
 }

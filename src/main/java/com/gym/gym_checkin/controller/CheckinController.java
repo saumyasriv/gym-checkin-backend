@@ -20,6 +20,18 @@ public class CheckinController {
         this.checkinService = checkinService;
     }
 
+    @PostMapping("/backdated")
+    public ResponseEntity<String> backdatedCheckin(
+            @RequestBody CheckinRequest request,
+            @RequestHeader(value = "X-Admin-User", required = false) String adminUser
+    ) {
+        try {
+            return ResponseEntity.ok(checkinService.processBackdatedAttendance(request, adminUser));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        }
+    }
+
     @PostMapping
     public ResponseEntity<String> checkin(
             @RequestBody CheckinRequest request

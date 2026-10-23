@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface CheckinRepository extends JpaRepository<Checkin, Long> {
 
+    boolean existsByMemberIdAndCheckinTimeAndClassTiming(Long memberId, java.time.LocalDateTime checkinTime, String classTiming);
+
     @Modifying
     @Transactional
     @Query("delete from Checkin c where c.member.id = :memberId")
