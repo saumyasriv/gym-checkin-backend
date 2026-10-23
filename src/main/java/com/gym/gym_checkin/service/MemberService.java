@@ -295,15 +295,6 @@ public class MemberService {
                                             ? checkin.getMembership().getId()
                                             : null
                             );
-                            checkinResponse.setBackdated(checkin.isBackdated());
-                            checkinResponse.setEnteredBy(checkin.getEnteredBy());
-                            checkinResponse.setEnteredAt(checkin.getEnteredAt());
-                            checkinResponse.setExpiredMembership(
-                                    checkin.getMembership() != null
-                                            && !checkin.getMembership().isExpiryRemoved()
-                                            && checkin.getMembership().getExpiryDate() != null
-                                            && checkin.getMembership().getExpiryDate().isBefore(LocalDate.now())
-                            );
 
                             return checkinResponse;
 

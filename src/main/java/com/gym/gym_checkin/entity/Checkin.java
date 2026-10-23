@@ -24,12 +24,6 @@ public class Checkin {
 
     private String classTiming;
 
-    private boolean backdated = false;
-
-    private String enteredBy;
-
-    private LocalDateTime enteredAt;
-
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "member_id")
@@ -41,11 +35,9 @@ public class Checkin {
 
     @PrePersist
     public void prePersist() {
-        if (this.checkinTime == null) {
-            this.checkinTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
-        }
-        if (this.enteredAt == null) {
-            this.enteredAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
-        }
+        this.checkinTime =
+                LocalDateTime.now(
+                        ZoneId.of("Asia/Kolkata")
+                );
     }
 }
