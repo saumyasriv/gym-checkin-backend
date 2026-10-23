@@ -13,9 +13,5 @@ public class CheckinResponse {
     private String type;
     private String classTiming;
     private Long membershipId;
-    private boolean backdated;
-    private boolean expiredMembership;
-    private String enteredBy;
-    private LocalDateTime enteredAt;
 
 }
