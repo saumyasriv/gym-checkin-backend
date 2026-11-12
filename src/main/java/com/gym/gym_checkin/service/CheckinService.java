@@ -1,3 +1,4 @@
+
 package com.gym.gym_checkin.service;
 
 import com.gym.gym_checkin.dto.CheckinRequest;
@@ -14,8 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -41,26 +47,62 @@ public class CheckinService {
             String type
     ) {
 
-        Member member = memberRepository.findById(request.getMemberId())
-                .orElseThrow(() -> {
-                    log.info(
-                            "Member not found with ID: {}",
-                            request.getMemberId()
-                    );
+        // ============================================================
+        // LOCK MEMBER
+        // ============================================================
+        //
+        // Prevents simultaneous requests for the same member from
+        // bypassing the cooldown check.
+        // ============================================================
 
-                    return new RuntimeException(
-                            "Member not found"
-                    );
-                });
+        Member member = memberRepository.findByIdForUpdate(
+                request.getMemberId()
+        ).orElseThrow(() -> {
+            log.info(
+                    "Member not found with ID: {}",
+                    request.getMemberId()
+            );
+
+            return new RuntimeException("Member not found");
+        });
+
+        // ============================================================
+        // CHECK-IN COOLDOWN
+        // ============================================================
+        //
+        // Only successful CHECKIN records trigger the 15-minute
+        // cooldown. NO_SHOW does not trigger the cooldown.
+        // ============================================================
+
+        if ("CHECKIN".equalsIgnoreCase(type)) {
+
+            LocalDateTime now = LocalDateTime.now(
+                    ZoneId.of("Asia/Kolkata")
+            );
+
+            LocalDateTime cooldownStart = now.minusMinutes(15);
+
+            Optional<Checkin> latestCheckin =
+                    checkinRepository
+                            .findTopByMember_IdAndTypeOrderByCheckinTimeDescIdDesc(
+                                    request.getMemberId(),
+                                    "CHECKIN"
+                            );
+
+            if (latestCheckin.isPresent()
+                    && latestCheckin.get().getCheckinTime() != null
+                    && latestCheckin.get().getCheckinTime()
+                    .isAfter(cooldownStart)) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "This member has already checked in. Please try again after 15 minutes."
+                );
+            }
+        }
 
         // ============================================================
         // MEMBER TYPE VALIDATION
-        // ============================================================
-        //
-        // GROUP members can only check in through the GROUP page.
-        // PT members can only check in through the PT page.
-        //
-        // This is enforced on the backend as well as the frontend.
         // ============================================================
 
         if (request.getMemberType() == null ||
@@ -93,19 +135,10 @@ public class CheckinService {
         // ============================================================
         // FIND USABLE MEMBERSHIP
         // ============================================================
-        //
-        // A membership can be used for check-in only when:
-        //
-        // 1. It has more than 0 credits
-        // 2. It is not paused
-        // 3. Its expiry date has not passed
-        //    OR expiry has been removed
-        //
-        // If multiple usable memberships exist, use the one
-        // expiring earliest.
-        // ============================================================
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(
+                ZoneId.of("Asia/Kolkata")
+        );
 
         List<Membership> memberships =
                 member.getMemberships()
@@ -129,15 +162,6 @@ public class CheckinService {
                                 Comparator.comparing(
                                         membership -> {
 
-                                            /*
-                                             * Memberships with no expiry
-                                             * are treated as indefinite.
-                                             *
-                                             * Put them after memberships
-                                             * with an actual expiry date so
-                                             * expiring credits are consumed
-                                             * first.
-                                             */
                                             if (membership.isExpiryRemoved()
                                                     || membership.getExpiryDate() == null) {
                                                 return LocalDate.MAX;
@@ -236,5 +260,41 @@ public class CheckinService {
 
         return "Checked in successfully. Remaining credits: "
                 + membership.getRemainingCredits();
+    }
+
+
+    public Map<Long, LocalDateTime> getActiveCooldowns() {
+
+        LocalDateTime now = LocalDateTime.now(
+                ZoneId.of("Asia/Kolkata")
+        );
+
+        LocalDateTime cooldownStart = now.minusMinutes(15);
+
+        List<Checkin> recentCheckins =
+                checkinRepository
+                        .findByTypeAndCheckinTimeGreaterThanEqualAndCheckinTimeLessThanOrderByCheckinTimeDesc(
+                                "CHECKIN",
+                                cooldownStart,
+                                now
+                        );
+
+        Map<Long, LocalDateTime> activeCooldowns = new HashMap<>();
+
+        for (Checkin checkin : recentCheckins) {
+
+            if (checkin.getMember() != null
+                    && checkin.getCheckinTime() != null) {
+
+                Long memberId = checkin.getMember().getId();
+
+                activeCooldowns.putIfAbsent(
+                        memberId,
+                        checkin.getCheckinTime()
+                );
+            }
+        }
+
+        return activeCooldowns;
     }
 }

@@ -1,3 +1,4 @@
+
 package com.gym.gym_checkin.controller;
 
 import com.gym.gym_checkin.dto.CheckinRequest;
@@ -5,6 +6,9 @@ import com.gym.gym_checkin.service.CheckinService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/checkins")
@@ -40,5 +44,13 @@ public class CheckinController {
                     .status(e.getStatusCode())
                     .body(e.getReason());
         }
+    }
+
+    @GetMapping("/cooldowns")
+    public ResponseEntity<Map<Long, LocalDateTime>> getActiveCooldowns() {
+
+        return ResponseEntity.ok(
+                checkinService.getActiveCooldowns()
+        );
     }
 }

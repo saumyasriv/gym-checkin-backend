@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface CheckinRepository extends JpaRepository<Checkin, Long> {
 
@@ -21,5 +22,10 @@ public interface CheckinRepository extends JpaRepository<Checkin, Long> {
             String type,
             LocalDateTime start,
             LocalDateTime end
+    );
+
+    Optional<Checkin> findTopByMember_IdAndTypeOrderByCheckinTimeDescIdDesc(
+            Long memberId,
+            String type
     );
 }
