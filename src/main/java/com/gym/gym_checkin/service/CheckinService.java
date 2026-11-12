@@ -80,7 +80,7 @@ public class CheckinService {
                     ZoneId.of("Asia/Kolkata")
             );
 
-            LocalDateTime cooldownStart = now.minusMinutes(15);
+            LocalDateTime cooldownStart = now.minusMinutes(1);
 
             Optional<Checkin> latestCheckin =
                     checkinRepository
